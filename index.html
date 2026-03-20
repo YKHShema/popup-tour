@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>팝업투어 신청</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #4FC3F7;
+    --sky-dark: #0288D1;
+    --sky-light: #E1F5FE;
+    --white: #ffffff;
+    --text: #1a1a2e;
+    --gray: #78909C;
+    --light: #F0F9FF;
+    --accent: #FFD600;
+    --success: #00C853;
+    --closed: #FF5252;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: linear-gradient(160deg, #87CEEB 0%, #4FC3F7 40%, #B3E5FC 100%);
+    min-height: 100vh;
+    padding: 24px 16px 60px;
+  }
+
+  /* 배경 오브젝트 */
+  .bg-obj {
+    position: fixed;
+    border-radius: 50%;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .bg-obj-1 { width: 200px; height: 200px; background: white; top: -60px; right: -40px; }
+  .bg-obj-2 { width: 120px; height: 120px; background: white; bottom: 100px; left: -30px; }
+  .bg-obj-3 { width: 80px; height: 80px; background: #FFD600; top: 40%; right: 10px; }
+
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 헤더 */
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+    animation: fadeDown 0.6s ease;
+  }
+
+  .open-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .title {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 52px;
+    color: white;
+    line-height: 1.1;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    letter-spacing: -1px;
+  }
+
+  .subtitle {
+    color: rgba(255,255,255,0.9);
+    font-size: 13px;
+    margin-top: 10px;
+    line-height: 1.7;
+    font-weight: 500;
+  }
+
+  .church-tag {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.75);
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 3px 12px;
+    border-radius: 20px;
+  }
+
+  /* 카드 */
+  .card {
+    background: white;
+    border-radius: 24px;
+    padding: 28px 24px;
+    box-shadow: 0 8px 40px rgba(0,100,160,0.15);
+    animation: fadeUp 0.7s ease;
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--sky-dark);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--sky-light);
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 7px;
+  }
+
+  label span.required {
+    color: var(--sky-dark);
+    margin-left: 3px;
+  }
+
+  input[type="text"],
+  input[type="tel"],
+  textarea,
+  select {
+    width: 100%;
+    padding: 13px 16px;
+    border: 2px solid #E3F2FD;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: 'Noto Sans KR', sans-serif;
+    color: var(--text);
+    background: var(--light);
+    transition: border-color 0.2s, background 0.2s;
+    outline: none;
+    appearance: none;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--sky);
+    background: white;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.6;
+  }
+
+  /* 학년+셀 행 */
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* 날짜 선택 */
+  .date-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .date-btn {
+    padding: 12px 8px;
+    border: 2px solid #E3F2FD;
+    border-radius: 12px;
+    background: var(--light);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    position: relative;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .date-btn:not(.closed):not(.selected):hover {
+    border-color: var(--sky);
+    background: #E1F5FE;
+  }
+
+  .date-btn.selected {
+    border-color: var(--sky-dark);
+    background: var(--sky-dark);
+    color: white;
+  }
+
+  .date-btn.closed {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5;
+    border-color: #e0e0e0;
+  }
+
+  .date-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    display: block;
+  }
+  .date-btn.selected .date-label { color: white; }
+  .date-btn.closed .date-label { color: #aaa; }
+
+  .date-sub {
+    font-size: 11px;
+    color: var(--gray);
+    margin-top: 2px;
+    display: block;
+  }
+  .date-btn.selected .date-sub { color: rgba(255,255,255,0.8); }
+
+  .closed-badge {
+    display: inline-block;
+    background: var(--closed);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-top: 4px;
+  }
+
+  .open-dot {
+    display: inline-block;
+    background: var(--success);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-top: 4px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--sky-light);
+    margin: 22px 0;
+  }
+
+  /* 제출 버튼 */
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--sky-dark), var(--sky));
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px;
+    font-family: 'Black Han Sans', sans-serif;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(2,136,209,0.35);
+    margin-top: 8px;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(2,136,209,0.45);
+  }
+
+  .submit-btn:active { transform: translateY(0); }
+
+  .submit-btn:disabled {
+    background: #ccc;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* 성공 화면 */
+  .success-card {
+    background: white;
+    border-radius: 24px;
+    padding: 40px 24px;
+    text-align: center;
+    box-shadow: 0 8px 40px rgba(0,100,160,0.15);
+    display: none;
+    animation: fadeUp 0.5s ease;
+  }
+
+  .success-icon {
+    font-size: 56px;
+    margin-bottom: 16px;
+  }
+
+  .success-title {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 26px;
+    color: var(--sky-dark);
+    margin-bottom: 10px;
+  }
+
+  .success-msg {
+    font-size: 14px;
+    color: var(--gray);
+    line-height: 1.7;
+  }
+
+  .success-detail {
+    background: var(--light);
+    border-radius: 14px;
+    padding: 16px;
+    margin: 20px 0;
+    text-align: left;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.8;
+  }
+
+  /* 로딩 */
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 8px;
+    color: var(--sky-dark);
+    font-size: 13px;
+  }
+
+  .spinner {
+    width: 20px; height: 20px;
+    border: 3px solid var(--sky-light);
+    border-top-color: var(--sky-dark);
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  /* 에러 */
+  .error-msg {
+    color: var(--closed);
+    font-size: 12px;
+    margin-top: 6px;
+    display: none;
+  }
+
+  .notice {
+    background: #FFF8E1;
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 0 10px 10px 0;
+    font-size: 12px;
+    color: #5D4037;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 헤더 -->
+  <div class="header">
+    <div class="open-badge">OPEN !</div>
+    <div class="title">팝업투어</div>
+    <div class="subtitle">
+      청년선생님이 여러분의 셀모임에 찾아갑니다<br>
+      보드게임 + 교제 + 셀나눔<br>
+      유쾌하고 즐거운 교제 시간 – 함께 누려요 🎊🎲
+    </div>
+    <div class="church-tag">창동영광교회 쉐마고등마을</div>
+  </div>
+
+  <!-- 신청 폼 -->
+  <div class="card" id="formCard">
+    <div class="notice">
+      ✋ 담임선생님만 신청 가능합니다 · 날짜당 선착순 1개 셀
+    </div>
+
+    <!-- 담임교사 정보 -->
+    <div class="section-title">담임교사 정보</div>
+
+    <div class="form-group">
+      <label>성함 <span class="required">*</span></label>
+      <input type="text" id="name" placeholder="홍길동" />
+    </div>
+
+    <div class="form-group">
+      <label>연락처 <span class="required">*</span></label>
+      <input type="tel" id="phone" placeholder="010-0000-0000" />
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 신청 정보 -->
+    <div class="section-title">셀 정보</div>
+
+    <div class="row-2">
+      <div class="form-group">
+        <label>학년 <span class="required">*</span></label>
+        <select id="grade">
+          <option value="">선택</option>
+          <option value="1학년">1학년</option>
+          <option value="2학년">2학년</option>
+          <option value="3학년">3학년</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>셀 번호 <span class="required">*</span></label>
+        <input type="text" id="cell" placeholder="예) 3셀" />
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 날짜 선택 -->
+    <div class="section-title">희망 날짜</div>
+
+    <div class="date-grid" id="dateGrid">
+      <!-- JS로 렌더링 -->
+    </div>
+    <div class="error-msg" id="dateError">날짜를 선택해주세요</div>
+
+    <div class="divider"></div>
+
+    <!-- 특이사항 -->
+    <div class="section-title">셀 특이사항</div>
+    <div class="form-group">
+      <label>학생 성향 · 요청사항 <span style="color:#aaa;font-weight:400">(선택)</span></label>
+      <textarea id="note" placeholder="예) 활발한 편이에요, 조용한 게임보다 활동적인 걸 좋아해요, 특정 학생 배려 필요 등"></textarea>
+    </div>
+
+    <div class="loading" id="loading">
+      <span class="spinner"></span> 신청 중...
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitForm()">
+      🎊 팝업 신청하기
+    </button>
+  </div>
+
+  <!-- 성공 화면 -->
+  <div class="success-card" id="successCard">
+    <div class="success-icon">🎉</div>
+    <div class="success-title">신청 완료!</div>
+    <div class="success-msg">팝업투어 신청이 완료되었어요<br>해당 주일에 찾아갈게요 🎲</div>
+    <div class="success-detail" id="successDetail"></div>
+    <div class="success-msg" style="font-size:12px">문의사항은 담당 청년선생님께 연락해주세요</div>
+  </div>
+</div>
+
+<script>
+// =============================================
+// 설정값 — 여기만 수정하세요
+// =============================================
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzuvXP7mY92zYG2_31mGij6suHlFdufXqJFu0dsFMcxNni8UilUUdeyuw5rH4MJ07IL9A/exec";
+
+// 날짜 목록 (주일만, 3/22~5/10)
+const ALL_DATES = [
+  { date: "2026-03-22", label: "3월 22일", sub: "주일" },
+  { date: "2026-03-29", label: "3월 29일", sub: "주일" },
+  { date: "2026-04-05", label: "4월 5일",  sub: "주일" },
+  { date: "2026-04-12", label: "4월 12일", sub: "주일" },
+  { date: "2026-04-19", label: "4월 19일", sub: "주일" },
+  { date: "2026-04-26", label: "4월 26일", sub: "주일" },
+  { date: "2026-05-03", label: "5월 3일",  sub: "주일" },
+  { date: "2026-05-10", label: "5월 10일", sub: "주일" },
+];
+
+// =============================================
+let selectedDate = null;
+let closedDates = []; // 구글시트에서 불러온 마감 날짜
+
+// 날짜 그리드 렌더링
+function renderDates() {
+  const grid = document.getElementById("dateGrid");
+  grid.innerHTML = "";
+  ALL_DATES.forEach(d => {
+    const isClosed = closedDates.includes(d.date);
+    const isSelected = selectedDate === d.date;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "date-btn" + (isClosed ? " closed" : "") + (isSelected ? " selected" : "");
+    btn.innerHTML = `
+      <span class="date-label">${d.label}</span>
+      <span class="date-sub">${d.sub}</span>
+      ${isClosed ? '<span class="closed-badge">마감</span>' : '<span class="open-dot">신청가능</span>'}
+    `;
+    if (!isClosed) {
+      btn.onclick = () => selectDate(d.date);
+    }
+    grid.appendChild(btn);
+  });
+}
+
+function selectDate(date) {
+  selectedDate = date;
+  document.getElementById("dateError").style.display = "none";
+  renderDates();
+}
+
+// 마감 날짜 불러오기 (구글시트에서)
+async function loadClosedDates() {
+  try {
+    const res = await fetch(SCRIPT_URL + "?action=getClosedDates");
+    const data = await res.json();
+    closedDates = data.closedDates || [];
+  } catch(e) {
+    closedDates = [];
+  }
+  renderDates();
+}
+
+// 폼 제출
+async function submitForm() {
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const grade = document.getElementById("grade").value;
+  const cell = document.getElementById("cell").value.trim();
+  const note = document.getElementById("note").value.trim();
+
+  // 유효성 검사
+  if (!name || !phone || !grade || !cell) {
+    alert("필수 항목을 모두 입력해주세요");
+    return;
+  }
+  if (!selectedDate) {
+    document.getElementById("dateError").style.display = "block";
+    return;
+  }
+
+  const btn = document.getElementById("submitBtn");
+  const loading = document.getElementById("loading");
+  btn.disabled = true;
+  loading.style.display = "block";
+
+  const dateLabel = ALL_DATES.find(d => d.date === selectedDate)?.label;
+
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ name, phone, grade, cell, date: selectedDate, dateLabel, note }),
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      // 성공
+      document.getElementById("formCard").style.display = "none";
+      const sc = document.getElementById("successCard");
+      sc.style.display = "block";
+      document.getElementById("successDetail").innerHTML =
+        `📋 <b>${grade} ${cell}</b><br>👤 담임선생님: <b>${name}</b><br>📅 희망 날짜: <b>${dateLabel}</b>`;
+    } else if (result.error === "already_taken") {
+      alert("😢 해당 날짜는 이미 신청이 완료되었어요!\n다른 날짜를 선택해주세요.");
+      closedDates.push(selectedDate);
+      selectedDate = null;
+      renderDates();
+      btn.disabled = false;
+      loading.style.display = "none";
+    } else {
+      throw new Error();
+    }
+  } catch(e) {
+    alert("오류가 발생했어요. 잠시 후 다시 시도해주세요.");
+    btn.disabled = false;
+    loading.style.display = "none";
+  }
+}
+
+// 초기화
+loadClosedDates();
+</script>
+</body>
+</html>
